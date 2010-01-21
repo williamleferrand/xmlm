@@ -1,0 +1,65 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link rel="previous" href="Xmlm.Buffer.html">
+<link rel="Up" href="Xmlm.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Xmlm" rel="Chapter" href="Xmlm.html"><link title="Basic types and values" rel="Section" href="#1_Basictypesandvalues">
+<link title="Input" rel="Section" href="#1_Input">
+<link title="Output" rel="Section" href="#1_Output">
+<title>Xmlm.S</title>
+</head>
+<body>
+<div class="navbar"><a href="Xmlm.Buffer.html">Previous</a>
+&nbsp;<a href="Xmlm.html">Up</a>
+&nbsp;</div>
+<center><h1>Module type <a href="type_Xmlm.S.html">Xmlm.S</a></h1></center>
+<br>
+<pre><span class="keyword">module type</span> S = <code class="code"><span class="keyword">sig</span></code> <a href="Xmlm.S.html">..</a> <code class="code"><span class="keyword">end</span></code></pre>Output signature of <a href="Xmlm.Make.html"><code class="code"><span class="constructor">Xmlm</span>.<span class="constructor">Make</span></code></a>.<br>
+<hr width="100%">
+<br>
+<a name="1_Basictypesandvalues"></a>
+<h1>Basic types and values</h1><br>
+<pre><span class="keyword">type</span> <a name="TYPEstring"></a><code class="type"></code>string </pre>
+
+<pre><span class="keyword">type</span> <a name="TYPEencoding"></a><code class="type"></code>encoding = <code class="type">[ `ISO_8859_1 | `US_ASCII | `UTF_16 | `UTF_16BE | `UTF_16LE | `UTF_8 ]</code> </pre>
+
+<pre><span class="keyword">type</span> <a name="TYPEdtd"></a><code class="type"></code>dtd = <code class="type"><a href="Xmlm.S.html#TYPEstring">string</a> option</code> </pre>
+
+<pre><span class="keyword">type</span> <a name="TYPEname"></a><code class="type"></code>name = <code class="type"><a href="Xmlm.S.html#TYPEstring">string</a> * <a href="Xmlm.S.html#TYPEstring">string</a></code> </pre>
+
+<pre><span class="keyword">type</span> <a name="TYPEattribute"></a><code class="type"></code>attribute = <code class="type"><a href="Xmlm.S.html#TYPEname">name</a> * <a href="Xmlm.S.html#TYPEstring">string</a></code> </pre>
+
+<pre><span class="keyword">type</span> <a name="TYPEtag"></a><code class="type"></code>tag = <code class="type"><a href="Xmlm.S.html#TYPEname">name</a> * <a href="Xmlm.S.html#TYPEattribute">attribute</a> list</code> </pre>
+
+<pre><span class="keyword">type</span> <a name="TYPEsignal"></a><code class="type"></code>signal = <code class="type">[ `Data of <a href="Xmlm.S.html#TYPEstring">string</a><br>       | `Dtd of <a href="Xmlm.S.html#TYPEdtd">dtd</a><br>       | `El_end<br>       | `El_start of <a href="Xmlm.S.html#TYPEtag">tag</a> ]</code> </pre>
+
+<pre><span class="keyword">val</span> <a name="VALns_xml"></a>ns_xml : <code class="type"><a href="Xmlm.S.html#TYPEstring">string</a></code></pre><pre><span class="keyword">val</span> <a name="VALns_xmlns"></a>ns_xmlns : <code class="type"><a href="Xmlm.S.html#TYPEstring">string</a></code></pre><br>
+<a name="1_Input"></a>
+<h1>Input</h1><br>
+<pre><span class="keyword">type</span> <a name="TYPEpos"></a><code class="type"></code>pos = <code class="type">int * int</code> </pre>
+
+<pre><span class="keyword">type</span> <a name="TYPEerror"></a><code class="type"></code>error = <code class="type">[ `Expected_char_seqs of <a href="Xmlm.S.html#TYPEstring">string</a> list * <a href="Xmlm.S.html#TYPEstring">string</a><br>       | `Expected_root_element<br>       | `Illegal_char_ref of <a href="Xmlm.S.html#TYPEstring">string</a><br>       | `Illegal_char_seq of <a href="Xmlm.S.html#TYPEstring">string</a><br>       | `Malformed_char_stream<br>       | `Max_buffer_size<br>       | `Unexpected_eoi<br>       | `Unknown_encoding of <a href="Xmlm.S.html#TYPEstring">string</a><br>       | `Unknown_entity_ref of <a href="Xmlm.S.html#TYPEstring">string</a><br>       | `Unknown_ns_prefix of <a href="Xmlm.S.html#TYPEstring">string</a> ]</code> </pre>
+
+<pre><span class="keyword">exception</span> <a name="EXCEPTIONError"></a>Error <span class="keyword">of</span> <code class="type"><a href="Xmlm.S.html#TYPEpos">pos</a> * <a href="Xmlm.S.html#TYPEerror">error</a></code></pre>
+<pre><span class="keyword">val</span> <a name="VALerror_message"></a>error_message : <code class="type"><a href="Xmlm.S.html#TYPEerror">error</a> -> <a href="Xmlm.S.html#TYPEstring">string</a></code></pre><pre><span class="keyword">type</span> <a name="TYPEsource"></a><code class="type"></code>source = <code class="type">[ `Channel of Pervasives.in_channel<br>       | `Fun of unit -> int<br>       | `String of int * <a href="Xmlm.html#TYPEstd_string">Xmlm.std_string</a> ]</code> </pre>
+
+<pre><span class="keyword">type</span> <a name="TYPEinput"></a><code class="type"></code>input </pre>
+
+<pre><span class="keyword">val</span> <a name="VALmake_input"></a>make_input : <code class="type">?enc:<a href="Xmlm.S.html#TYPEencoding">encoding</a> option -><br>       ?strip:bool -><br>       ?ns:(<a href="Xmlm.S.html#TYPEstring">string</a> -> <a href="Xmlm.S.html#TYPEstring">string</a> option) -><br>       ?entity:(<a href="Xmlm.S.html#TYPEstring">string</a> -> <a href="Xmlm.S.html#TYPEstring">string</a> option) -><br>       <a href="Xmlm.S.html#TYPEsource">source</a> -> <a href="Xmlm.S.html#TYPEinput">input</a></code></pre><pre><span class="keyword">val</span> <a name="VALinput"></a>input : <code class="type"><a href="Xmlm.S.html#TYPEinput">input</a> -> <a href="Xmlm.S.html#TYPEsignal">signal</a></code></pre><pre><span class="keyword">val</span> <a name="VALinput_tree"></a>input_tree : <code class="type">el:(<a href="Xmlm.S.html#TYPEtag">tag</a> -> 'a list -> 'a) -><br>       data:(<a href="Xmlm.S.html#TYPEstring">string</a> -> 'a) -> <a href="Xmlm.S.html#TYPEinput">input</a> -> 'a</code></pre><pre><span class="keyword">val</span> <a name="VALinput_doc_tree"></a>input_doc_tree : <code class="type">el:(<a href="Xmlm.S.html#TYPEtag">tag</a> -> 'a list -> 'a) -><br>       data:(<a href="Xmlm.S.html#TYPEstring">string</a> -> 'a) -> <a href="Xmlm.S.html#TYPEinput">input</a> -> <a href="Xmlm.S.html#TYPEdtd">dtd</a> * 'a</code></pre><pre><span class="keyword">val</span> <a name="VALpeek"></a>peek : <code class="type"><a href="Xmlm.S.html#TYPEinput">input</a> -> <a href="Xmlm.S.html#TYPEsignal">signal</a></code></pre><pre><span class="keyword">val</span> <a name="VALeoi"></a>eoi : <code class="type"><a href="Xmlm.S.html#TYPEinput">input</a> -> bool</code></pre><pre><span class="keyword">val</span> <a name="VALpos"></a>pos : <code class="type"><a href="Xmlm.S.html#TYPEinput">input</a> -> <a href="Xmlm.S.html#TYPEpos">pos</a></code></pre><br>
+<a name="1_Output"></a>
+<h1>Output</h1><br>
+<pre><span class="keyword">type</span> <a name="TYPEfrag"></a><code class="type">'a</code> frag = <code class="type">[ `Data of <a href="Xmlm.S.html#TYPEstring">string</a> | `El of <a href="Xmlm.S.html#TYPEtag">tag</a> * 'a list ]</code> </pre>
+
+<pre><span class="keyword">type</span> <a name="TYPEdest"></a><code class="type"></code>dest = <code class="type">[ `Buffer of <a href="Xmlm.html#TYPEstd_buffer">Xmlm.std_buffer</a><br>       | `Channel of Pervasives.out_channel<br>       | `Fun of int -> unit ]</code> </pre>
+
+<pre><span class="keyword">type</span> <a name="TYPEoutput"></a><code class="type"></code>output </pre>
+
+<pre><span class="keyword">val</span> <a name="VALmake_output"></a>make_output : <code class="type">?nl:bool -><br>       ?indent:int option -><br>       ?ns_prefix:(<a href="Xmlm.S.html#TYPEstring">string</a> -> <a href="Xmlm.S.html#TYPEstring">string</a> option) -><br>       <a href="Xmlm.S.html#TYPEdest">dest</a> -> <a href="Xmlm.S.html#TYPEoutput">output</a></code></pre><pre><span class="keyword">val</span> <a name="VALoutput"></a>output : <code class="type"><a href="Xmlm.S.html#TYPEoutput">output</a> -> <a href="Xmlm.S.html#TYPEsignal">signal</a> -> unit</code></pre><pre><span class="keyword">val</span> <a name="VALoutput_tree"></a>output_tree : <code class="type">('a -> 'a <a href="Xmlm.S.html#TYPEfrag">frag</a>) -> <a href="Xmlm.S.html#TYPEoutput">output</a> -> 'a -> unit</code></pre><pre><span class="keyword">val</span> <a name="VALoutput_doc_tree"></a>output_doc_tree : <code class="type">('a -> 'a <a href="Xmlm.S.html#TYPEfrag">frag</a>) -> <a href="Xmlm.S.html#TYPEoutput">output</a> -> <a href="Xmlm.S.html#TYPEdtd">dtd</a> * 'a -> unit</code></pre></body></html>
