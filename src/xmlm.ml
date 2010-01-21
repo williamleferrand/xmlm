@@ -1043,9 +1043,10 @@ struct
     if o.depth = -1 then 
       begin match s with
       | `Dtd d ->
-	  outs o "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
 	  begin match d with 
-	  | Some dtd -> out_utf_8 o dtd; o.outc '\n' 
+	  | Some dtd ->
+	  outs o "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";
+	  out_utf_8 o dtd; o.outc '\n' 
 	  | None -> ()
 	  end;
 	  o.depth <- 0
