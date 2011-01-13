@@ -1,10 +1,10 @@
-ATTENTION!! This is not the official library by Daniel Buenzl, but a modified version for Lwt
+ATTENTION!! This is not the official library by Daniel Bünzli, but a modified version for Lwt
 
 The official library is here : http://erratique.ch/software/xmlm
 
 NOTES: 
       * This is a "quick made version". In particular, there are plenty of recursive functions call that could be optimized by passing the current input as a argument .. 
-
+      * Build & install is now done through make
 
 
 ...............................................................................
