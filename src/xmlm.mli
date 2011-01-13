@@ -114,8 +114,11 @@ val error_message : error -> string
 exception Error of pos * error
 (** Raised on input errors. *)
 
+
 type source = [ 
-  | `Channel of in_channel | `String of int * string | `Fun of (unit -> int) ]
+    | `Channel of Lwt_io.input Lwt_io.channel 
+    | `String of int * string
+    | `Fun of (unit -> int Lwt.t) ]
 (** The type for input sources. For [`String] starts reading at the
     given integer position. For [`Fun] the function must return the
     next {e byte} as an [int] and raise [End_of_file] if there is no
@@ -138,7 +141,7 @@ val make_input : ?enc:encoding option -> ?strip:bool ->
     {- [entity] is called to resolve non predefined entity references,
        {{:#inentity} details}. Default returns always [None].}} *)
 
-val input : input -> signal
+val input : input -> signal Lwt.t
 (** Inputs a signal. Repeated invocation of the function with the same
     input abstraction will generate a {{:#TYPEsignal}well-formed} sequence
     of signals or an {!Error} is raised. Furthermore there will be no
@@ -149,7 +152,7 @@ val input : input -> signal
     {b Raises} {!Error} on input errors. *)
 
 val input_tree : el:(tag -> 'a list -> 'a) -> data:(string -> 'a)  -> 
-                 input -> 'a
+                 input -> 'a Lwt.t
 (** If the next signal is a :
     {ul
     {- [`Data] signal, inputs it and invokes [data] with the character data.}
@@ -168,19 +171,19 @@ val input_tree : el:(tag -> 'a list -> 'a) -> data:(string -> 'a)  ->
       if the next signal is not [`El_start] or [`Data]. *)
 
 val input_doc_tree : el:(tag -> 'a list -> 'a) -> data:(string -> 'a) -> 
-                     input -> (dtd * 'a)
+                     input -> (dtd * 'a) Lwt.t
 (** Same as {!input_tree} but reads a complete {{:#TYPEsignal}well-formed}  
     sequence of signals. 
 
     {b Raises} {!Error} on input errors and [Invalid_argument]
      if the next signal is not [`Dtd]. *)
     
-val peek : input -> signal
+val peek : input -> signal Lwt.t
 (** Same as {!input} but doesn't remove the signal from the sequence. 
 
     {b Raises} {!Error} on input errors. *)
 
-val eoi : input -> bool
+val eoi : input -> bool Lwt.t
 (** Returns [true] if the end of input is reached. See {{:#iseq}details}.
  
     {b Raises} {!Error} on input errors. *)
@@ -193,7 +196,7 @@ val pos : input -> pos
 type 'a frag = [ `El of tag * 'a list | `Data of string ]
 (** The type for deconstructing data structures of type ['a]. *)
 
-type dest = [ `Channel of out_channel | `Buffer of Buffer.t | 
+type dest = [ `Channel of Lwt_io.output_channel | `Buffer of Buffer.t | 
               `Fun of (int -> unit) ]
 (** The type for output destinations. For [`Buffer], the buffer won't
     be cleared. For [`Fun] the function is called with the output {e
@@ -215,7 +218,7 @@ val make_output : ?nl:bool -> ?indent:int option ->
        see {{:#outns}details}. Default returns always [None].}} *)
 
 
-val output : output -> signal -> unit
+val output : output -> signal -> unit Lwt.t
 (** Outputs a signal. After a well-formed sequence of signals was 
     output a new well-formed sequence can be output.
 
@@ -223,13 +226,13 @@ val output : output -> signal -> unit
     the output abstraction is not {{:#TYPEsignal}well-formed} or if a
     namespace name could not be bound to a prefix. *)
 
-val output_tree : ('a -> 'a frag) -> output -> 'a -> unit
+val output_tree : ('a -> 'a frag) -> output -> 'a -> unit Lwt.t
 (** Outputs signals corresponding to a value by recursively
     applying the given value deconstructor.
 
     {b Raises} see {!output}. *)
 
-val output_doc_tree : ('a -> 'a frag) -> output -> (dtd * 'a) -> unit   
+val output_doc_tree : ('a -> 'a frag) -> output -> (dtd * 'a) -> unit Lwt.t
 (** Same as {!output_tree} but outputs a complete {{:#TYPEsignal}well-formed} 
     sequence of signals.
 
@@ -265,7 +268,7 @@ module type String = sig
       to lowercase (correctness is only needed for ASCII
       {{:http://www.unicode.org/glossary/#code_point}code point}). *)
 
-  val iter : (int -> unit) -> t -> unit
+  val iter : (int -> unit Lwt.t) -> t -> unit Lwt.t
   (** Iterates over the unicode 
       {{:http://www.unicode.org/glossary/#code_point}code point}
       of the given string. *)
@@ -273,7 +276,7 @@ module type String = sig
   val of_string : std_string -> t
   (** String from an OCaml string. *)
 
-  val to_utf_8 : ('a -> std_string -> 'a) -> 'a -> t -> 'a
+  val to_utf_8 : ('a -> std_string -> 'a Lwt.t) -> 'a -> t -> 'a Lwt.t
   (** [to_utf_8 f v s], is [f (... (f (f v s1) s2) ...) sn]. Where the
       concatenation of [s1], [s2], ... [sn] is [s] as an UTF-8 stream. *)
 
@@ -350,9 +353,9 @@ module type S = sig
   val error_message : error -> string
 
   type source = [ 
-  | `Channel of in_channel 
+  | `Channel of Lwt_io.input_channel 
   | `String of int * std_string
-  | `Fun of (unit -> int) ]
+  | `Fun of (unit -> int Lwt.t) ]
 
   type input
 
@@ -360,34 +363,35 @@ module type S = sig
                    ?ns:(string -> string option) -> 
 		   ?entity: (string -> string option) -> source -> input
 
-  val input : input -> signal
+  val input : input -> signal Lwt.t
 
   val input_tree : el:(tag -> 'a list -> 'a) -> data:(string -> 'a)  -> 
-                   input -> 'a
+                   input -> 'a Lwt.t
 
   val input_doc_tree : el:(tag -> 'a list -> 'a) -> data:(string -> 'a) -> 
-                       input -> (dtd * 'a)
+                       input -> (dtd * 'a) Lwt.t
     
-  val peek : input -> signal
-  val eoi : input -> bool
+  val peek : input -> signal Lwt.t
+  val eoi : input -> bool Lwt.t
   val pos : input -> pos 
 
   (** {1 Output} *)
 
   type 'a frag = [ `El of tag * 'a list | `Data of string ]
+
   type dest = [ 
-    | `Channel of out_channel | `Buffer of std_buffer | `Fun of (int -> unit) ]
+    | `Channel of Lwt_io.output_channel | `Buffer of std_buffer | `Fun of (int -> unit) ]
 
   type output
   val make_output : ?nl:bool -> ?indent:int option -> 
                     ?ns_prefix:(string -> string option) -> dest -> output
 	
-  val output : output -> signal -> unit
-  val output_tree : ('a -> 'a frag) -> output -> 'a -> unit
-  val output_doc_tree : ('a -> 'a frag) -> output -> (dtd * 'a) -> unit   
+  val output : output -> signal -> unit Lwt.t
+  val output_tree : ('a -> 'a frag) -> output -> 'a -> unit Lwt.t
+  val output_doc_tree : ('a -> 'a frag) -> output -> (dtd * 'a) -> unit Lwt.t   
 end
 
-(** Functor building streaming XML IO with the given strings and buffers. *)
+(** Functor building sreaming XML IO with the given strings and buffers. *)
 module Make (String : String) (Buffer : Buffer with type string = String.t) : S
 with type string = String.t
 

@@ -253,7 +253,7 @@ struct
   let v_ascii = str "ascii"
       
   let name_str (p,l) = if str_empty p then l else cat p (cat (str ":") l)
-
+      
   (* Basic types and values *)
 
   type encoding = [ 
@@ -281,7 +281,6 @@ struct
 	
   exception Error of pos * error
 
-  
   let error_message e = 
     let bracket l v r = cat (str l) (cat v (str r)) in
     match e with
@@ -342,7 +341,6 @@ struct
   let err_expected_chars i exps = 
     err i (`Expected_char_seqs (List.map str_of_char exps, str_of_char i.c))
 
-      
   let u_eoi = max_int
   let u_start_doc = u_eoi - 1
   let u_end_doc = u_start_doc - 1
@@ -533,10 +531,9 @@ struct
 
 
  let p_ncname i =
-   
    clear_ident i;
    if not (is_name_start_char i.c) then 
-     err_illegal_char i i.c
+     err_illegal_char i i.c 
    else
      begin 
        addc_ident i i.c; lwt _ = nextc i in
@@ -549,9 +546,8 @@ struct
 
     
   let p_qname i =                                 (* {QName} (Namespace 1.1) *)
-    lwt n  = p_ncname i in
-  
-  if i.c <> u_colon then return (String.empty, n) else (lwt _ = nextc i in lwt s = p_ncname i in return (n, s))
+    lwt n = p_ncname i in
+    if i.c <> u_colon then return (String.empty, n) else (lwt _ = nextc i in lwt s = p_ncname i in return (n, s))
       
   let p_charref i =                             (* {CharRef}, '&' was eaten. *) 
     let c = ref 0 in
@@ -611,7 +607,7 @@ match is_char !c with
       
   let p_entity_ref i =                        (* {EntityRef}, '&' was eaten. *)
     lwt ent = p_ncname i in
-    lwt _ = accept i u_scolon in 
+  lwt _ = accept i u_scolon in 
     catch 
       (fun () -> return (Ht.find predefined_entities ent))
       (fun e -> match e with
@@ -640,8 +636,9 @@ match is_char !c with
         if i.c = u_lt then 
 	  err_illegal_char i u_lt
 	else
-	  lwt _ = if i.c = u_amp then
-	      (lwt pr = p_reference i in String.iter (fun p -> return (addc_data_strip i p)) pr)
+	  lwt pr = p_reference i in
+          lwt _ = if i.c = u_amp then 
+	    (String.iter (fun p -> return (addc_data_strip i p)) pr)
 	  else (addc_data_strip i i.c; nextc i) in
            loop (i.c <> delim)
  in
@@ -664,7 +661,6 @@ let p_attributes i =                            (* ({S} {Attribute})* {S}? *)
 	    lwt _ = skip_white i in
 	    lwt _ = accept i u_eq in 
             lwt v = p_attr_value i in
-             
 	  let att = n, v in
 	  if str_empty prefix && str_eq local n_xmlns then
 	    begin  (* xmlns *)                                                
@@ -690,8 +686,6 @@ let p_attributes i =                            (* ({S} {Attribute})* {S}? *)
     aux i [] []           (* Returns a list of bound prefixes and attributes *)
 
   let p_limit i =                                   (* Parses a markup limit *)
-    
-    
     lwt limit = 
       if i.c = u_eoi then
 	return Eoi
@@ -701,9 +695,9 @@ let p_attributes i =                            (* ({S} {Attribute})* {S}? *)
 	else 
 	  begin
 	    lwt _ = nextc i in
-	   
 	    if i.c = u_qmark then 
-	      (lwt _ = nextc i in lwt qn = p_qname i in return (Pi qn))
+	      (lwt _ = nextc i in lwt qn = p_qname i in 
+				  return (Pi qn))
 	    else
 	      if i.c = u_slash then 
 		begin 
@@ -712,25 +706,23 @@ let p_attributes i =                            (* ({S} {Attribute})* {S}? *)
 		  lwt _ = skip_white i in
 		  return (Etag n)
 		end
-             else 
-               if i.c = u_emark then 
-		 begin 
-		   lwt _ = nextc i in
-		   if i.c = u_minus then 
-	           (lwt _ = nextc i in lwt _ =  accept i u_minus in return Comment)
-		   else
-		     if i.c = u_D then
-		       ( 
-			 return Dtd) 
-		     else
-		       if i.c = u_lbrack then 
-			 begin 
-			   lwt _ = nextc i in
-			 clear_ident i;
-			 let rec loop = function 
-			   | 0 -> return () 
-			   | n -> addc_ident i i.c; lwt _ = nextc i in loop (n-1) in
-                         lwt _ = loop 6 in
+	else if i.c = u_emark then 
+	  begin 
+	    lwt _ = nextc i in
+	    if i.c = u_minus then 
+	      (lwt _ = nextc i in lwt _ =  accept i u_minus in return Comment)
+	    else
+	      if i.c = u_D then
+		return Dtd 
+	      else
+		if i.c = u_lbrack then 
+		  begin 
+		    lwt _ = nextc i in
+		    clear_ident i;
+		  let rec loop = function 
+		    | 0 -> return () 
+		    | n -> addc_ident i i.c; lwt _ = nextc i in loop (n-1) in
+                 lwt _ = loop 6 in
                  let cdata = Buffer.contents i.ident in 
 		 if str_eq cdata s_cdata then
 		   return Cdata
@@ -741,9 +733,8 @@ let p_attributes i =                            (* ({S} {Attribute})* {S}? *)
 	      err i (`Illegal_char_seq (cat (str "<!") (str_of_char i.c)))
 	  end
 	else 
-         (
           lwt pq = p_qname i in
-	  return (Stag pq))
+	  return (Stag pq)
       end in 
    i.limit <- limit ; 
    return () 	
@@ -774,11 +765,10 @@ let p_attributes i =                            (* ({S} {Attribute})* {S}? *)
     else 
       nextc_eof i
 
-  let rec skip_misc i ~allow_xmlpi = 
-    match i.limit with          (* {Misc}* *)
-      | Pi (p,l) when (str_empty p && str_eq n_xml (String.lowercase l)) -> 
-	if allow_xmlpi then return () else err i (`Illegal_char_seq l)
-      | Pi _ -> lwt _ = skip_pi i in lwt _ = p_limit i in skip_misc i ~allow_xmlpi
+  let rec skip_misc i ~allow_xmlpi = match i.limit with          (* {Misc}* *)
+  | Pi (p,l) when (str_empty p && str_eq n_xml (String.lowercase l)) -> 
+      if allow_xmlpi then return () else err i (`Illegal_char_seq l)
+  | Pi _ -> lwt _ = skip_pi i in lwt _ = p_limit i in skip_misc i ~allow_xmlpi
   | Comment -> lwt _ = skip_comment i in lwt _ =  p_limit i in skip_misc i ~allow_xmlpi
   | Text when is_white i.c -> 
       lwt _ = skip_white_eof i in lwt _ = p_limit i in skip_misc i ~allow_xmlpi
@@ -892,9 +882,7 @@ let p_attributes i =                            (* ({S} {Attribute})* {S}? *)
     | _ -> return ()
 
   let p_dtd_signal i = (* {Misc}* {doctypedecl} {Misc}* *)
-    
-    lwt _ = skip_misc i ~allow_xmlpi:false in
-    
+    lwt _ = skip_misc i ~allow_xmlpi:false in 
     if i.limit <> Dtd then
       return (`Dtd None)
     else
@@ -976,7 +964,6 @@ let p_attributes i =                            (* ({S} {Attribute})* {S}? *)
     in
     let strip = i.stripping in  (* save it here, p_attributes may change it. *) 
     lwt prefixes, atts = p_attributes i in
-    
     i.scopes <- (n, prefixes, strip) :: i.scopes;
     return (`El_start ((expand_name i n), List.rev_map expand_att atts))
 
@@ -995,7 +982,7 @@ let p_attributes i =                            (* ({S} {Attribute})* {S}? *)
   let p_signal i = 
     if i.scopes = [] then 
       match i.limit with 
-      | Stag n ->  p_el_start_signal i n
+      | Stag n -> p_el_start_signal i n
       | _ -> err i `Expected_root_element
     else 
       let rec find i : 'a Lwt.t =
@@ -1033,23 +1020,21 @@ let p_attributes i =                            (* ({S} {Attribute})* {S}? *)
   let eoi i = 
     catch
       (fun () ->
-	if i.c = u_eoi then 
-	  return true 
-	else
-	  if i.c <> u_start_doc then
-	    return false
-	  else                 (* In a document. *)
-	    if i.peek <> `El_end then                (* Start of document sequence. *)
-	      begin 
-		lwt ignore_enc = find_encoding i in
-	        lwt _ = p_limit i in
-      
-                lwt _ = p_xml_decl ~ignore_enc ~ignore_utf16:false i in 
-	        lwt s = p_dtd_signal i in i.peek <- s ; return false
+      if i.c = u_eoi then 
+	return true 
+      else
+	if i.c <> u_start_doc then
+	  return false
+	else                 (* In a document. *)
+	  if i.peek <> `El_end then                (* Start of document sequence. *)
+	    begin 
+	      lwt ignore_enc = find_encoding i in
+	      lwt _ = p_limit i in
+	      lwt _ = p_xml_decl ~ignore_enc ~ignore_utf16:false i in 
+	      lwt s = p_dtd_signal i in i.peek <- s ; return false
 	    end
           else                                            (* Subsequent documents. *)
             begin 
-	      
 	    lwt _ = nextc_eof i in
 	    lwt _ = p_limit i in 
          	if i.c = u_eoi then
@@ -1080,17 +1065,12 @@ let p_attributes i =                            (* ({S} {Attribute})* {S}? *)
     catch
       (fun () -> 
 	if i.c = u_end_doc then
-  	( i.c <- u_start_doc; return i.peek) 
-	else
-	  begin
-
-	    lwt s = peek i in
-
-            lwt si = p_signal i in
-
-            i.peek <- si ;
-            return s 
-          end)
+	(i.c <- u_start_doc; return i.peek) 
+      else
+	lwt s = peek i in
+        lwt si = p_signal i in
+	i.peek <- si ; 
+	return s)
     (fun e -> match e with 
       | Buffer.Full -> err i `Max_buffer_size
       | Malformed -> err i `Malformed_char_stream

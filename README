@@ -1,3 +1,12 @@
+ATTENTION!! This is not the official library by Daniel Buenzl, but a modified version for Lwt
+
+The official library is here : http://erratique.ch/software/xmlm
+
+NOTES: 
+      * This is a "quick made version". In particular, there are plenty of recursive functions call that could be optimized by passing the current input as a argument .. 
+
+
+
 ...............................................................................
 Xmlm - Streaming XML input/output for OCaml
        Release 1.0.2

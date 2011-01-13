@@ -1,0 +1,7 @@
+name="xmlm"
+version="0.0.1"
+description="xmlm"
+requires="lwt"
+archive(byte) = "xmlm.cmo"
+archive(native) = "xmlm.cmx"
+#include = "+xmlm"

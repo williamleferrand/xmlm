@@ -1,12 +1,13 @@
-lib=_build/src/xmlm
-SITELIB=$(shell ocamlfind printconf destdir)
+all:
+	ocamlbuild src/xmlm.cmo
 
-default:
-	./build
+remove:
+	ocamlfind remove xmlm
 
 install:
-	mkdir -p $(DESTDIR)$(SITELIB)
-	ocamlfind install -destdir $(DESTDIR)$(SITELIB) -ldconf ignore xmlm src/META $(lib).cmi $(lib).cmx $(lib).cmo $(lib).o
- 
-uninstall:
-	ocamlfind remove xmlm
+	ocamlfind install xmlm META _build/src/xmlm.cm*
+
+clean:
+	ocamlbuild -clean
+	find . |grep '~'| xargs rm -rf 
+

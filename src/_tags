@@ -1,0 +1,2 @@
+<*.ml*>: pkg_lwt.syntax, syntax_camlp4o
+<*essai*>: pkg_threads, pkg_lwt.extra, pkg_lwt
